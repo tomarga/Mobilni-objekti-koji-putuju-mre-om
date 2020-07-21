@@ -1,13 +1,12 @@
-import java.util.ArrayList;
-import java.util.List;
+package hr.pmf.dp.projekt;
 
-public class MobileObjects extends Process implements Lock {
+public class MOSuzukiKasami extends Process implements Lock {
     boolean interested;
     boolean object_present;
     int[] request_by;
     static Integer[] obtained;
 
-    public MobileObjects(Linker initComm, int coordinator) {
+    public MOSuzukiKasami(Linker initComm, int coordinator) {
         super(initComm);
         // System.out.print("MobileObject init!\n");
         interested = false;
@@ -71,4 +70,3 @@ public class MobileObjects extends Process implements Lock {
         }
     }
 }
-
