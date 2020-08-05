@@ -1,27 +1,25 @@
-package hr.pmf.dp.projekt;
+import java.util.Arrays;
 
-public class MOSuzukiKasami extends Process implements Lock {
+public class MOSuzukiKasami extends Process implements MOLock {
     boolean interested;
     boolean object_present;
     int[] request_by;
-    static Integer[] obtained;
+    int[] obtained;
 
     public MOSuzukiKasami(Linker initComm, int coordinator) {
         super(initComm);
-        // System.out.print("MobileObject init!\n");
+
         interested = false;
         object_present = (myId == coordinator);
         request_by = new int[N];
         for (int i = 0; i < N; i++) request_by[i] = 0;
 
-        obtained = new Integer[N];
+        obtained = new int[N];
         for (int j = 0; j < N; j++) {
             obtained[j] = 0;
         }
     }
-    // acquire_object  ~ requestCS
-    public synchronized void requestCS() {
-        // System.out.print("MobileObject acquire_object!\n");
+    public synchronized void acquire_object() {
         interested = true;
         if( !object_present ){
             request_by[myId] = request_by[myId] + 1;
@@ -31,33 +29,53 @@ public class MOSuzukiKasami extends Process implements Lock {
             }
         }
     }
-    // release_object() ~ releaseCS()
-    public synchronized void releaseCS() {
-        // System.out.print("MobileObject release_object!\n");
+    public synchronized void release_object() {
         interested = false;
         obtained[myId] = request_by[myId];
 
-        for(int k = myId + 1; k < N; k++){
-            if( request_by[k] > obtained[k] ){
+        int k = myId + 1;
+        int option = 1;
+
+        while(true){
+            if( option == 1 && k == N ){
+                k = 0;
+                option = 2;
+            }
+            if( option == 2 && k == myId )
+                return;
+
+            if( request_by[k] > obtained[k] ) {
                 object_present = false;
-                sendMsg(k, "OBJECT");
+                sendMsg(k, "OBJECT", Arrays.toString(obtained));
                 return;
             }
+            k++;
         }
-        for(int k = 0; k < myId; k++){
-            // System.out.print("myId = " + myId + "; k = " + k + "request_by[k] =" + request_by[k] + "; obtained[k] = " + obtained[k] + "\n");
-            if( request_by[k] > obtained[k]){
-                object_present = false;
-                sendMsg(k, "OBJECT");
-                return;
-            }
-        }
+
     }
-    // handle messages OBJECT and REQUEST
     public synchronized void handleMsg(Msg m, int src, String tag) {
-        // System.out.print("MobileObject handleMsg!\n");
         if (tag.equals("OBJECT")) {
             object_present = true;
+
+            // Extract numbers (sent obtained values from other process) from message
+            String numbers = m.getMessage().replaceAll("\\D+"," ");
+            numbers = numbers.trim().replaceAll("\\s{2,}", " ");
+            String[] words = numbers.split(" ");
+
+            int[] received_obtained = new int[N];
+            int i = 0;
+
+            // Update array obtained.
+            for (String word : words) {
+                if ( i >= N )
+                    throw new Error("More integers representing values in obtained array in message than processes.");
+
+                received_obtained[i] = Integer.parseInt(word);
+                if (received_obtained[i] > obtained[i] )
+                    obtained[i] = received_obtained[i];
+
+                i++;
+            }
             notifyAll();
         }
         else if (tag.equals("REQUEST")){
@@ -65,8 +83,10 @@ public class MOSuzukiKasami extends Process implements Lock {
             request_by[k] = request_by[k] + 1;
             if( object_present && !interested){
                 object_present = false;
-                sendMsg(k, "OBJECT");
+                sendMsg(k, "OBJECT", Arrays.toString(obtained));
             }
         }
     }
 }
+
+
