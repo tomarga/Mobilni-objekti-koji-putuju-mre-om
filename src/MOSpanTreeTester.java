@@ -10,9 +10,9 @@ public class MOSpanTreeTester {
             int myId = Integer.parseInt(args[1]);
             int numProc = Integer.parseInt(args[2]);
             comm = new Linker(baseName, myId, numProc);
-            MOSpanTree lock = null;
 
-            lock = new MOSpanTree(comm,myId == 0);
+            System.out.println( "basename " + baseName +  " myid " + myId + " numproc " + numProc);
+            MOSpanTree lock = new MOSpanTree(comm,myId == 0);
 
             for (int i = 0; i < numProc; i++) 
                if (i != myId)
@@ -25,12 +25,12 @@ public class MOSpanTreeTester {
 
             while (true) {
             	
-            	System.out.println(myId + " is not in CS");
+            	System.out.println("***** " + myId + " does not have mobile object *****");
                 Util.mySleep(2000);
-                lock.requestCS();
+                lock.acquire_object();
                 Util.mySleep(2000);
-                System.out.println(myId + " is in CS *****");
-                lock.releaseCS();
+                System.out.println("***** " + myId + " has mobile object *****");
+                lock.release_object();
             	
             }
         }

@@ -10,19 +10,19 @@ public class MOSuzukiKasamiTester {
             int numProc = Integer.parseInt(args[2]);
             comm = new Linker(baseName, myId, numProc);
             
-            Lock lock = new MOSuzukiKasami(comm,0);
+            MOLock lock = new MOSuzukiKasami(comm,0);
             for (int i = 0; i < numProc; i++)
                if (i != myId)
                   (new ListenerThread(i, (MsgHandler)lock)).start();
             while (true) {
-                System.out.println(myId + " is not in CS");
+                System.out.println("***** " + myId + " does not have mobile object *****");
                 Util.mySleep(2000);
-                lock.requestCS();
+                lock.acquire_object();
                 Util.mySleep(2000);
-                System.out.println(myId + " is in CS *****");
-	                lock.releaseCS();
-	            }
-	        }
+                System.out.println("***** " + myId + " has mobile object *****");
+                lock.release_object();
+            }
+	    }
         catch (Exception e) {
         	if ( comm != null ) comm.close();
             System.out.println(e);

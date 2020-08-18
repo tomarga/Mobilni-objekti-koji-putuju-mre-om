@@ -1,6 +1,6 @@
 package hr.pmf.dp.projekt;
 
-public class MOSpanTree extends SpanTree implements Lock{
+public class MOSpanTree extends SpanTree implements MOLock{
 	
 	private boolean interested;
 	private IntLinkedList queue;
@@ -14,9 +14,8 @@ public class MOSpanTree extends SpanTree implements Lock{
 		queue = new IntLinkedList();
 	}
 	
-	// acquire_object ~ requestCS
 	@Override
-	public synchronized void requestCS() {
+	public synchronized void acquire_object() {
 		interested = true;
 				
 		if ( !present ) {
@@ -28,12 +27,10 @@ public class MOSpanTree extends SpanTree implements Lock{
 				myWait();
 			}
 		}
-		
 	}
 
-	// release_object ~ releaseCS
 	@Override
-	public synchronized void releaseCS() {
+	public synchronized void release_object() {
 		interested = false;
 				
 		if ( !queue.isEmpty() ) {
@@ -47,7 +44,6 @@ public class MOSpanTree extends SpanTree implements Lock{
 				sendMsg( parent, "REQUEST" );
 			}
 		}
-		
 	}
 	
 	@Override
